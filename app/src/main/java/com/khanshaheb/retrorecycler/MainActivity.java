@@ -12,20 +12,18 @@ import com.khanshaheb.retrorecycler.Adapter.FeedAdapter;
 import com.khanshaheb.retrorecycler.Api.MyApi;
 import com.khanshaheb.retrorecycler.Model.ItemModel;
 
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.GsonConverter;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Callback<ItemModel> {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-
 
     String API = "http://api.androidhive.info/feed/";
 
@@ -34,13 +32,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .create();
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(API).addConverterFactory(GsonConverterFactory.create(gson)).build();
-
-//        RestAdapter restAdapter = new RestAdapter.Builder()
-//                .setEndpoint(API).build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(API)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
@@ -48,38 +52,20 @@ public class MainActivity extends AppCompatActivity {
 
         MyApi myApi = retrofit.create(MyApi.class);
 
+        Call<ItemModel> call = myApi.getShout();
+        call.enqueue(this);
 
-        myApi.getShout(new retrofit2.Callback<ItemModel>() {
-            @Override
-            public void onResponse(Call<ItemModel> call, retrofit2.Response<ItemModel> response) {
-                ItemModel itemModel = response.body();
-                FeedAdapter adapter = new FeedAdapter(itemModel);
-                mRecyclerView.setAdapter(adapter);
-            }
+    }
 
-            @Override
-            public void onFailure(Call<ItemModel> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"boom !",Toast.LENGTH_LONG).show();
-            }
-        });
+    @Override
+    public void onResponse(Call<ItemModel> call, Response<ItemModel> response) {
+        ItemModel itemModel = response.body();
+        FeedAdapter adapter = new FeedAdapter(itemModel);
+        mRecyclerView.setAdapter(adapter);
+    }
 
-// with retrofit 1.9.0
-//        myApi.getShout(new Callback<ItemModel>() {
-//
-//            @Override
-//            public void success(ItemModel itemModel, Response response) {
-//
-//                FeedAdapter adapter = new FeedAdapter(itemModel);
-//                mRecyclerView.setAdapter(adapter);
-//            }
-//
-//            @Override
-//            public void failure(RetrofitError error) {
-//                Toast.makeText(getApplicationContext(),"boom !",Toast.LENGTH_LONG).show();
-//
-//            }
-//        });
-
-
+    @Override
+    public void onFailure(Call<ItemModel> call, Throwable t) {
+        Toast.makeText(getApplicationContext(),"boom !",Toast.LENGTH_LONG).show();
     }
 }
