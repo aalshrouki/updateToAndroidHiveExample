@@ -39,14 +39,14 @@ public class MainActivity extends AppCompatActivity {
 
         Retrofit retrofit = new Retrofit.Builder().baseUrl(API).addConverterFactory(GsonConverterFactory.create(gson)).build();
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(API).build();
+//        RestAdapter restAdapter = new RestAdapter.Builder()
+//                .setEndpoint(API).build();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        MyApi myApi = restAdapter.create(MyApi.class);
+        MyApi myApi = retrofit.create(MyApi.class);
 
 
         myApi.getShout(new retrofit2.Callback<ItemModel>() {
