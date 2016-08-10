@@ -2,8 +2,11 @@ package com.khanshaheb.retrorecycler.Api;
 
 import com.khanshaheb.retrorecycler.Model.ItemModel;
 
-import retrofit.Callback;
-import retrofit.http.GET;
+import retrofit2.Callback;
+import retrofit2.http.GET;
+
+//import retrofit.Callback;
+//import retrofit.http.GET;
 
 
 /**
